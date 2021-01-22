@@ -5,6 +5,7 @@ const webpack = require('webpack');
 
 
 module.exports = {
+  devtool: 'source-map',
   entry: ['./src/', './src/assets/styles/main.scss'],
   output: {
     path: path.resolve(__dirname, 'dist'),

@@ -3,7 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 const webpack = require('webpack');
 
-
 module.exports = {
   devtool: 'source-map',
   entry: ['./src/', './src/assets/styles/main.scss'],
@@ -45,6 +44,7 @@ module.exports = {
     }),
     new webpack.DefinePlugin({
       'process.env': {
+        MOCK_KEYCLOAK: JSON.stringify(process.env.MOCK_KEYCLOAK),
         KEYCLOAK_AUTH_URL: JSON.stringify(process.env.KEYCLOAK_AUTH_URL),
         KEYCLOAK_CLIENT_ID: JSON.stringify(process.env.KEYCLOAK_CLIENT_ID),
         KEYCLOAK_REALM: JSON.stringify(process.env.KEYCLOAK_REALM),

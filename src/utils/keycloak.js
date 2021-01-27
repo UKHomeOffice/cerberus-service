@@ -11,13 +11,20 @@ const KeycloakProvider = ({ children }) => {
   const keycloakInstance = Keycloak(config.keycloak.clientConfig);
 
   useEffect(() => {
-    keycloakInstance.init(config.keycloak.initOptions).then(authenticated => {
-      if (authenticated) {
-        setKeycloak(keycloakInstance);
-      } else {
-        keycloakInstance.login();
-      }
-    });
+    if (config.keycloak.mock) {
+      setKeycloak({
+        createLogoutUrl: () => '',
+        loadUserInfo: () => Promise.resolve({ name: 'Cerberus' }),
+      });
+    } else {
+      keycloakInstance.init(config.keycloak.initOptions).then(authenticated => {
+        if (authenticated) {
+          setKeycloak(keycloakInstance);
+        } else {
+          keycloakInstance.login();
+        }
+      });
+    }
   }, []);
 
   return <KeycloakContext.Provider value={keycloak}>{children}</KeycloakContext.Provider>;

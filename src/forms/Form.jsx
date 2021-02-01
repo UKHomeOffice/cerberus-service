@@ -1,41 +1,53 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
-import { FormContext } from '../forms/formContext';
+import { FormContext } from './formContext';
 import useForm from '../forms/useForm';
-
-const LoadingBox = ({ loading, children }) => (loading ? <div>Loading...</div> : children);
+import LoadingSpinner from './LoadingSpinner';
+import FormErrors from './FormErrors';
 
 function Form({
-  initialValues = {},
+  id,
+  defaultValues = {},
   onSubmit = null,
+  onSuccess = null,
+  onCancel = null,
   scrollToTop = true,
+  showErrorSummary = true,
   children = null,
 }) {
   const formInstance = useForm({
-    initialValues: initialValues,
-    onSubmit: onSubmit,
-    scrollToTop: scrollToTop,
+    id,
+    defaultValues,
+    onSubmit,
+    onSuccess,
+    onCancel,
+    scrollToTop,
   });
+
+  const ref = useRef();
 
   const renderChildren = () => {
     if (typeof children === 'function') {
-      return children(formInstance)
+      return children(formInstance);
     }
-    return children
+    return children;
   }
 
   return (
     <FormContext.Provider value={formInstance}>
       <form
+        id={id}
+        ref={ref}
         noValidate={true}
         onSubmit={(e) => {
           e.preventDefault()
-          formInstance.goForward()
+          formInstance.goForward();
         }}
       >
-        <LoadingBox loading={formInstance.isLoading}>
+        <LoadingSpinner loading={formInstance.isLoading}>
+          {showErrorSummary && <FormErrors />}
           {renderChildren()}
-        </LoadingBox>
+        </LoadingSpinner>
       </form>
     </FormContext.Provider>
   )

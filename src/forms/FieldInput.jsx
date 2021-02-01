@@ -1,24 +1,35 @@
 import React from 'react';
 
 import useField from '../forms/useField';
+import Input from '../govuk/Input';
 
 const FieldInput = ({
+  id,
   name,
   type,
-  ...rest
+  validate,
+  required,
+  defaultValue,
+  ...attributes
 }) => {
-  const { value, onChange } = useField({
+  const { value, error, onChange, onBlur } = useField({
     name,
-  })
+    validate,
+    required,
+    defaultValue,
+  });
 
   return (
-    <input
-      id={name}
+    <Input
+      key={name}
+      id={id || `field-${name}`}
       type={type}
       name={name}
-      value={value}
+      defaultValue={value || defaultValue}
       onChange={onChange}
-      {...rest}
+      onBlur={onBlur}
+      errorMessage={error}
+      {...attributes}
     />
   );
 };

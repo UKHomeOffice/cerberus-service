@@ -24,6 +24,6 @@ export const AppRouter = () => {
       </Layout>
     </BrowserRouter>
   )
-}
+};
 
-export default AppRouter
+export default AppRouter;

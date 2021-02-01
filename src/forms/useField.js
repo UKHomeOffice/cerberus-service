@@ -5,7 +5,7 @@ import { useFormContext } from './formContext'
 
 function useField({
   name,
-  initialValue = '',
+  defaultValue = '',
   validate = null,
   required = null,
 }) {
@@ -30,7 +30,7 @@ function useField({
   }
 
   useEffect(() => {
-    registerField({ name, initialValue, validate: prepareValidators() })
+    registerField({ name, defaultValue, validate: prepareValidators() })
 
     return () => {
       deregisterField(name)

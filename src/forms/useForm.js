@@ -1,24 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isEmpty, isEqual, omit } from 'lodash';
 import { useDeepCompareEffect } from 'react-use';
 
 function useForm({
-  initialValues = {},
+  id,
+  defaultValues = {},
   onSubmit = null,
+  onSuccess = null,
+  onCancel = null,
   scrollToTop = true,
 } = {}) {
-  const [values, setValues] = useState(initialValues)
+  const rawStorage = localStorage.getItem(id);
+  const storage = rawStorage ? JSON.parse(rawStorage) : {};
+  const [values, setValues] = useState(storage?.values || defaultValues)
   const [touched, setTouched] = useState({})
   const [errors, setErrors] = useState({})
   const [fields, setFields] = useState({})
   const [steps, setSteps] = useState([])
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState(storage?.currentStep || 0)
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submissionError, setSubmissionError] = useState(null)
-  const isDirty = !isEmpty(values) && !isEqual(values, initialValues)
+  const isDirty = !isEmpty(values) && !isEqual(values, defaultValues)
 
   const formState = {
+    id,
     values,
     touched,
     errors,
@@ -31,11 +37,20 @@ function useForm({
     submissionError,
   }
 
+  const clearStorage = () => localStorage.setItem(id, null);
+
+  useDeepCompareEffect(() => {
+    localStorage.setItem(id, JSON.stringify({
+      values,
+      currentStep,
+    }));
+  }, [currentStep, values]);
+
   useDeepCompareEffect(() => {
     if (scrollToTop) {
       window.scrollTo(0, 0)
     }
-  }, [currentStep, errors])
+  }, [currentStep, errors, isSubmitted])
 
   const getFieldState = (name) => {
     return {
@@ -105,10 +120,10 @@ function useForm({
 
   const registerField = (field) =>
     setFields((prevFields) => {
-      const { name, initialValue } = field
+      const { name, defaultValue } = field
 
-      if (initialValue) {
-        setFieldValue(name, initialValue)
+      if (defaultValue) {
+        setFieldValue(name, defaultValue)
       }
 
       setFieldTouched(name, false)
@@ -167,6 +182,11 @@ function useForm({
 
       setIsLoading(false)
       setIsSubmitted(true)
+      clearStorage()
+
+      if (typeof onSuccess === 'function') {
+        await onSuccess(values)
+      }
     } catch (e) {
       setSubmissionError(e)
       setIsLoading(false)
@@ -179,7 +199,7 @@ function useForm({
   }
 
   const goForward = async () => {
-    const validationErrors = validateForm()
+    const validationErrors = validateForm();
 
     if (!isEmpty(validationErrors)) {
       return
@@ -194,6 +214,14 @@ function useForm({
   }
 
   const goBack = () => setCurrentStep(currentStep - 1)
+
+  const cancel = async () => {
+    clearStorage();
+
+    if (typeof onCancel === 'function') {
+      await onCancel()
+    }
+  }
 
   const goToStepByName = (stepName) => setCurrentStep(steps.indexOf(stepName))
 
@@ -214,6 +242,7 @@ function useForm({
     setIsSubmitted,
     goForward,
     goBack,
+    cancel,
     goToStepByName,
     getStepIndex,
     isLastStep,

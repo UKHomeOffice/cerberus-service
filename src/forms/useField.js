@@ -43,6 +43,7 @@ const useField = ({
     value: fieldState.value,
     error: fieldState.error,
     onChange: (e) => setFieldValue(name, e.target.value),
+    setFieldValue,
   };
 };
 

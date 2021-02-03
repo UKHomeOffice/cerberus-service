@@ -1,0 +1,6 @@
+@import '~accessible-autocomplete/dist/accessible-autocomplete.min';
+@import '~govuk-frontend/govuk/settings/typography-font';
+
+.autocomplete__wrapper {
+  font-family: $govuk-font-family;
+}

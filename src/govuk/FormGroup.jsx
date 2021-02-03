@@ -51,7 +51,9 @@ const FormGroup = ({
         {labelWithId}
         {hintWithId}
         {errorMessageWithId}
-        {children({ formGroupDescribeBy: describeByElements.join(' ') })}
+        {typeof children === 'function'
+          ? children({ formGroupDescribeBy: describeByElements.join(' ') })
+          : children}
       </FieldsetWrapper>
     </div>
   );

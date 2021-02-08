@@ -55,7 +55,7 @@ const Radios = ({
                     {...item.attributes}
                   />
                   <Label className="govuk-radios__label" htmlFor={itemId}>{item.label}</Label>
-                  {item.hint ? <Hint classes="govuk-radios__hint" {...item.hint} id={itemHintId} /> : ''}
+                  {item.hint ? <Hint className="govuk-radios__hint" {...item.hint} id={itemHintId} /> : ''}
                 </div>
 
                 {item.conditional && itemChecked && (

@@ -15,21 +15,21 @@ export const requireValue = (errorMessage) => (value) => {
   return isEmpty(value) ? errorMessage : null;
 };
 
-export const validShortDate = (errorMessage) => (value = {}) => {
-  const {
-    year, month, hour, minute,
-  } = value;
-  return (!year && !month && !hour && !minute) || `${year}/${month}`.match(SHORT_DATE_PATTERN) ? null : errorMessage;
+export const validShortDate = (errorMessage) => ({
+  year, month, hour, minute,
+} = {}) => {
+  const empty = !year && !month && !hour && !minute;
+  return empty || `${year}/${month}`.match(SHORT_DATE_PATTERN) ? null : errorMessage;
 };
 
-export const validLongDate = (errorMessage) => (value = {}) => {
-  const {
-    year, month, day, hour, minute,
-  } = value;
-  return (!year && !month && !day && !hour && !minute) || `${year}/${month}/${day}`.match(LONG_DATE_PATTERN) ? null : errorMessage;
+export const validLongDate = (errorMessage) => ({
+  year, month, day, hour, minute,
+} = {}) => {
+  const empty = !year && !month && !day && !hour && !minute;
+  return empty || `${year}/${month}/${day}`.match(LONG_DATE_PATTERN) ? null : errorMessage;
 };
 
-export const validTime = (errorMessage) => (value = {}) => {
-  const { hour, minute } = value;
-  return (!hour && !minute) || `${hour}:${minute}`.match(TIME_PATTERN) ? null : errorMessage;
+export const validTime = (errorMessage) => ({ hour, minute } = {}) => {
+  const empty = !hour && !minute;
+  return empty || `${hour}:${minute}`.match(TIME_PATTERN) ? null : errorMessage;
 };

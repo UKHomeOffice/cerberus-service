@@ -95,7 +95,7 @@ const IssueTargetPage = () => {
               setFormIsLoading(true);
               await submitForm(
                 'assignTarget',
-                'CRB-123', // TODO: Generate dynamic and unique business keys.
+                data.data.businessKey,
                 form,
                 data,
                 (e) => setError(e.message),

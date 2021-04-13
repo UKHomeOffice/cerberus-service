@@ -95,7 +95,7 @@ const IssueTargetPage = () => {
               setFormIsLoading(true);
               await submitForm(
                 'assignTarget',
-                data.data.businessKey,
+                data.data.businessKey, 
                 form,
                 data,
                 (e) => setError(e.message),

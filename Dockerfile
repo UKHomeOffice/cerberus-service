@@ -1,6 +1,7 @@
 FROM node:10-alpine as builder
 
 RUN apk update && apk upgrade
+RUN apk add --no-cache git
 RUN mkdir -p /src
 
 WORKDIR /src

@@ -359,23 +359,26 @@ const TaskVersions = ({ taskVersions }) => (
   />
 );
 
-const TaskManagementForm = ({ onCancel, taskId, taskData, ...props }) => {
+const TaskManagementForm = ({ formName, onCancel, taskId, taskData, ...props }) => {
   const submitForm = useFormSubmit();
   return (
-    <RenderForm
-      onCancel={() => onCancel(false)}
-      preFillData={taskData}
-      onSubmit={async (data, form) => {
-        await submitForm(
-          `/task/${taskId}/submit-form`,
-          data.data.businessKey,
-          form,
-          { ...data.data, actionTarget: false },
-          FORM_NAME_TARGET_INFORMATION_SHEET,
-        );
-      }}
-      {...props}
-    />
+    <div id={formName}>
+      <RenderForm
+        formName={formName}
+        onCancel={() => onCancel(false)}
+        preFillData={taskData}
+        onSubmit={async (data, form) => {
+          await submitForm(
+            `/task/${taskId}/submit-form`,
+            data.data.businessKey,
+            form,
+            { ...data.data, actionTarget: false },
+            FORM_NAME_TARGET_INFORMATION_SHEET,
+          );
+        }}
+        {...props}
+      />
+    </div>
   );
 };
 

@@ -120,6 +120,9 @@ const RenderForm = ({ formName, onSubmit, onCancel, preFillData, children }) => 
               setError(null);
             }}
             options={{
+              breadcrumbSettings: {
+                clickable: false,
+              },
               noAlerts: true,
               hooks: {
                 beforeCancel: async () => {

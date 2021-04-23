@@ -28,3 +28,9 @@
     margin-top: 20pt;
   }
 }
+
+#dismissTarget, #assessmentComplete {
+  .govuk-breadcrumbs {
+    display: none;
+  }
+}

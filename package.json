@@ -27,7 +27,7 @@
     "@ukhomeoffice/formio-gds-template": "^1.0.6",
     "axios": "^0.21.1",
     "classnames": "^2.2.6",
-    "formiojs": "^4.12.7",
+    "formiojs": "^4.13.0",
     "fs-extra": "^9.0.1",
     "govuk-frontend": "^3.10.2",
     "jwt-decode": "^3.1.2",

@@ -587,17 +587,19 @@ const TaskDetailsPage = () => {
                   >
                     Assessment complete
                   </Button>
-                  <Button
-                    className="govuk-button--warning"
-                    onClick={() => {
-                      setIssueTargetFormOpen(false);
-                      setCompleteFormOpen(false);
-                      setDismissFormOpen(true);
-                    }}
-                  >
-                    Dismiss
-                  </Button>
                 </>
+              )}
+              {(currentUserIsOwner || !assignee) && (
+                <Button
+                  className="govuk-button--warning"
+                  onClick={() => {
+                    setIssueTargetFormOpen(false);
+                    setCompleteFormOpen(false);
+                    setDismissFormOpen(true);
+                  }}
+                >
+                  Dismiss
+                </Button>
               )}
             </div>
           </div>

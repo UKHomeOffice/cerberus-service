@@ -1,7 +1,6 @@
 {
   "baseUrl": "https://www.dev.cerberus.cop.homeoffice.gov.uk",
   "env": {
-    "keycloakUrl": "https://sso-dev.notprod.homeoffice.gov.uk",
     "envname": "development"
   }
 }

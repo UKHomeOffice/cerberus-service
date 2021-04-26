@@ -2,13 +2,14 @@ import 'cypress-keycloak-commands';
 
 let token;
 
+const cerberusServiceUrl = Cypress.env('cerberusServiceUrl');
+const realm = Cypress.env('auth_realm');
+
 Cypress.Commands.add('login', (userName) => {
   cy.kcLogout();
   cy.kcLogin(userName).as('tokens');
-  cy.log(`${Cypress.env('keycloakUrl')}/auth/realms/cop-dev/protocol/openid-connect/token`);
-  cy.intercept('POST', `${Cypress.env('keycloakUrl')}/auth/realms/cop-dev/protocol/openid-connect/token`).as('token');
+  cy.intercept('POST', `/auth/realms/${realm}/protocol/openid-connect/token`).as('token');
   cy.visit('/');
-
   cy.wait('@token').then(({ response }) => {
     token = response.body.access_token;
   });
@@ -19,7 +20,7 @@ Cypress.Commands.add('navigation', (option) => {
 });
 
 Cypress.Commands.add('waitForTaskManagementPageToLoad', () => {
-  cy.intercept('POST', '/camunda/variable-instance?**').as('tasks');
+  cy.intercept('POST', '/camunda/variable-instance?deserializeValues=false&variableName=taskSummary&processInstanceIdIn=*').as('tasks');
   cy.navigation('Tasks');
 
   cy.wait('@tasks').then(({ response }) => {
@@ -27,23 +28,9 @@ Cypress.Commands.add('waitForTaskManagementPageToLoad', () => {
   });
 });
 
-Cypress.Commands.add('getTaskNotes', (taskId) => {
-  const authorization = `bearer ${token}`;
-  const options = {
-    method: 'GET',
-    url: `https://cerberus-service.dev.cerberus.cop.homeoffice.gov.uk/camunda/engine-rest/task/${taskId}/comment`,
-    headers: {
-      authorization,
-    },
-  };
-
-  cy.request(options).then((response) => {
-    return response.body[0].message;
-  });
-});
-
 Cypress.Commands.add('getUnassignedTasks', () => {
   const authorization = `bearer ${token}`;
+
   const options = {
     method: 'GET',
     url: '/camunda/task?firstResult=0&maxResults=20',
@@ -122,4 +109,28 @@ Cypress.Commands.add('verifySuccessfulSubmissionHeader', (value) => {
   cy.get('.govuk-panel--confirmation h1')
     .should('be.visible')
     .and('have.text', value);
+});
+
+Cypress.Commands.add('postTasks', () => {
+  const businessKey = `CERB-AUTOTEST-${Math.floor((Math.random() * 1000000) + 1)}`;
+
+  cy.fixture('tasks.json').then((task) => {
+    task.variables.rbtPayload.value = JSON.parse(task.variables.rbtPayload.value);
+
+    task.businessKey = businessKey;
+
+    task.variables.rbtPayload.value.data.movementId = businessKey;
+
+    task.variables.rbtPayload.value = JSON.stringify(task.variables.rbtPayload.value);
+
+    cy.request({
+      method: 'POST',
+      url: `https://${cerberusServiceUrl}/camunda/engine-rest/process-definition/key/raiseMovement/start`,
+      headers: { Authorization: `Bearer ${token}` },
+      body: task,
+    }).then((response) => {
+      expect(response.status).to.eq(200);
+      expect(response.body.businessKey).to.eq(task.businessKey);
+    });
+  });
 });

@@ -87,6 +87,18 @@ By default, tests run against local environment.
 
 **NOTE:** You will need, the [cerberus-service](https://github.com/UKHomeOffice/cerberus-service) application, to be running before triggering Cypress.
 
+create a file called cypress.env.json on a root folder and include the following key-value pair when running the tests locally,
+(These values would be automatically fetched from secret manager and would be set when tests running inside drone server / kube)
+
+```json5
+{
+   "auth_base_url": "xxxx",
+   "auth_realm": "xxx",
+   "auth_client_id": "xxx",
+   "cerberusServiceUrl": "xxx",
+}
+```
+
 #### Running cypress test runner
 
 Running all tests
@@ -120,4 +132,19 @@ npm run cypress:test:local -- --spec cypress/integration/cerberus/tasks.spec.js
 Running specific test with chrome browser
 ```sh
 npm run cypress:test:local -- --browser chrome --spec cypress/integration/cerberus/task-management.spec.js
+```
+Running All tests and generating mochawesome html report with screenshots
+```sh
+npm run cypress:test:report -- -b chrome -c ${CERBERUS_WORKFLOW_SERVICE_URL} -e dev
+```
+
+Running specific test and generating mochawesome html report with screenshots
+```sh
+npm run cypress:test:report -- -b chrome -s cypress/integration/cerberus/login.spec.js
+```
+
+Running all tests and generating mochawesome html report with screenshots using script
+export CERBERUS_WORKFLOW_SERVICE_URL=xxxxx
+```sh
+./scripts/run_tests.sh
 ```

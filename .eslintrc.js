@@ -68,14 +68,15 @@ module.exports = {
     },
     // Cypress tests
     {
-      files: ['*.spec.js', 'commands.js', 'index.js'],
+      files: ['*.spec.js', 'commands.js', 'index.js', 'cypress_runner.js'],
       rules: {
-        'jest/expect-expect': 'off',
-        'cypress/no-unnecessary-waiting': 'off',
-        'jest/valid-expect': 'off',
-        'jest/valid-expect-in-promise': 'off',
+        'jest/valid-expect': 0,
+        'jest/valid-expect-in-promise': 0,
         'jest/no-standalone-expect': 'off',
-        'no-return-assign': 'off',
+        'no-unused-expressions': 'off',
+        'quote-props': 'off',
+        'cypress/no-unnecessary-waiting': 'off',
+        'no-console': 0,
       },
     },
   ],

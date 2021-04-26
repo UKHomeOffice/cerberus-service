@@ -1,10 +1,10 @@
 {
   "baseUrl": "http://localhost:8080",
   "env": {
+    "userName": "cypressuser-cerberus@lodev.xyz",
     "auth_base_url": "https://sso-dev.notprod.homeoffice.gov.uk/auth",
-    "auth_realm":"cop-dev",
-    "auth_client_id":"formbuilder",
-    "userName": "cypressuser-cerberus@lodev.xyz"
+    "auth_realm": "cop-dev",
+    "auth_client_id": "cerberus"
   },
   "defaultCommandTimeout": 10000,
   "requestTimeout": 60000,
@@ -14,5 +14,15 @@
   "chromeWebSecurity": false,
   "testFiles": "**/cerberus/*.js",
   "video": false,
-  "watchForFileChanges":false
+  "watchForFileChanges": false,
+  "reporter": "mochawesome",
+  "reporterOptions": {
+    "reportDir": "mochawesome-report",
+    "html": false,
+    "json": true,
+    "code": false,
+    "overwrite": false,
+    "reportTitle": "cerberus-tests"
+  },
+  "screenshotsFolder": "mochawesome-report/assets"
 }

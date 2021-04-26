@@ -1,7 +1,6 @@
 {
   "baseUrl": "http://localhost:8080",
   "env": {
-    "keycloakUrl": "https://sso-dev.notprod.homeoffice.gov.uk",
     "envname": "local"
   }
 }

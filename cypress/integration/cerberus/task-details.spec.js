@@ -1,7 +1,11 @@
-describe('Render tasks from Camunda and manage them on task management and details Page', () => {
+describe('Render tasks from Camunda and manage them on task details Page', () => {
+  before(() => {
+    cy.login(Cypress.env('userName'));
+    cy.postTasks();
+  });
+
   beforeEach(() => {
     cy.login(Cypress.env('userName'));
-    cy.waitForTaskManagementPageToLoad();
   });
 
   it('Should navigate to task details page', () => {
@@ -13,7 +17,7 @@ describe('Render tasks from Camunda and manage them on task management and detai
 
   it('Should add notes for the selected tasks', () => {
     const taskNotes = 'Add notes for testing & check it stored';
-    cy.intercept('POST', '/camunda/task/*/comment/create').as('notes');
+    cy.intercept('POST', '/camunda/message').as('notes');
     cy.intercept('GET', '/camunda/task/*').as('tasksDetails');
 
     cy.getUnassignedTasks().then((tasks) => {
@@ -38,11 +42,7 @@ describe('Render tasks from Camunda and manage them on task management and detai
     cy.get('.formio-component-submit button').click('top');
 
     cy.wait('@notes').then(({ response }) => {
-      expect(response.statusCode).to.equal(200);
-      expect(response.body.message).to.contain(taskNotes);
-      cy.getTaskNotes(response.body.taskId).then((message) => {
-        expect(message).to.equal(taskNotes);
-      });
+      expect(response.statusCode).to.equal(204);
     });
 
     cy.get('button.link-button').should('be.visible').and('have.text', 'Unclaim').click();
@@ -65,34 +65,6 @@ describe('Render tasks from Camunda and manage them on task management and detai
     cy.get('.govuk-heading-xl').should('have.text', 'Task details');
 
     cy.get('.formio-component-note textarea').should('not.exist');
-  });
-
-  it('Should Unclaim a task Successfully from task details page', () => {
-    cy.intercept('GET', '/camunda/task/*').as('tasksDetails');
-    cy.intercept('POST', '/camunda/task/*/unclaim').as('unclaim');
-
-    cy.getTasksAssignedToMe().then((tasks) => {
-      const taskId = tasks.map(((item) => item.id));
-      expect(taskId.length).to.not.equal(0);
-      cy.visit(`/tasks/${taskId[0]}`);
-      cy.wait('@tasksDetails').then(({ response }) => {
-        expect(response.statusCode).to.equal(200);
-      });
-    });
-
-    cy.wait(2000);
-
-    cy.get('button.link-button').should('be.visible').and('have.text', 'Unclaim').click();
-
-    cy.wait('@unclaim').then(({ response }) => {
-      expect(response.statusCode).to.equal(204);
-    });
-
-    cy.wait(2000);
-
-    cy.get('button.link-button').should('have.text', 'Claim').click();
-
-    cy.wait(2000);
   });
 
   it('Should Claim a task Successfully from task details page', () => {
@@ -119,16 +91,15 @@ describe('Render tasks from Camunda and manage them on task management and detai
     });
 
     cy.wait(2000);
-
-    cy.get('p.govuk-body').eq(0).should('contain.text', 'Assigned to you');
-
-    cy.get('button.link-button').should('be.visible').and('have.text', 'Unclaim').click();
-
-    cy.wait(2000);
   });
 
-  it('Should complete assessment of a task with a reason as take no further action', () => {
+  it('Should Unclaim a task Successfully from task details page', () => {
     cy.intercept('GET', '/camunda/task/*').as('tasksDetails');
+    cy.intercept('POST', '/camunda/task/*/unclaim').as('unclaim');
+
+    cy.get('a[href="#in-progress"]').click();
+
+    cy.waitForTaskManagementPageToLoad();
 
     cy.getTasksAssignedToMe().then((tasks) => {
       const taskId = tasks.map(((item) => item.id));
@@ -140,6 +111,31 @@ describe('Render tasks from Camunda and manage them on task management and detai
     });
 
     cy.wait(2000);
+
+    cy.get('button.link-button').should('be.visible').and('have.text', 'Unclaim').click();
+
+    cy.wait('@unclaim').then(({ response }) => {
+      expect(response.statusCode).to.equal(204);
+    });
+
+    cy.wait(2000);
+  });
+
+  it('Should complete assessment of a task with a reason as take no further action', () => {
+    cy.intercept('GET', '/camunda/task/*').as('tasksDetails');
+
+    cy.getUnassignedTasks().then((tasks) => {
+      const taskId = tasks.map(((item) => item.id));
+      expect(taskId.length).to.not.equal(0);
+      cy.visit(`/tasks/${taskId[0]}`);
+      cy.wait('@tasksDetails').then(({ response }) => {
+        expect(response.statusCode).to.equal(200);
+      });
+    });
+
+    cy.wait(2000);
+
+    cy.get('button.link-button').should('be.visible').and('have.text', 'Claim').click();
 
     cy.contains('Assessment complete').click();
 

@@ -45,10 +45,43 @@ getSecret().then((secret) => {
   if (secret.users) {
     const testUser = secret.users.find((user) => user.username === cerberusUser);
 
+    let dir = 'cypress/fixtures/users';
+
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+
     fs.writeFileSync(
-      `${__dirname}/cypress/fixtures/users/${testUser.username}.json`,
+      `cypress/fixtures/users/${testUser.username}.json`,
       JSON.stringify(testUser),
       { flag: 'w' },
     );
+
+    try {
+      if (fs.existsSync(`cypress/fixtures/users/${testUser.username}.json`)) {
+        console.log('File exists');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  if (secret.services) {
+    const auth = secret.services.auth;
+
+    fs.readFile('cypress.json', 'utf8', (err, data) => {
+      let json;
+      let obj;
+      if (err) {
+        console.log(err);
+      } else {
+        obj = JSON.parse(data);
+        obj.env.auth_base_url = auth.url;
+        obj.env.auth_realm = auth.realm;
+        obj.env.auth_client_id = auth.client;
+        json = JSON.stringify(obj);
+        fs.writeFileSync('cypress.json', json, { flag: 'w' });
+      }
+    });
   }
 });

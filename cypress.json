@@ -1,10 +1,7 @@
 {
   "baseUrl": "http://localhost:8080",
   "env": {
-    "userName": "cypressuser-cerberus@lodev.xyz",
-    "auth_base_url": "https://sso-dev.notprod.homeoffice.gov.uk/auth",
-    "auth_realm": "cop-dev",
-    "auth_client_id": "cerberus"
+    "userName": "cypressuser-cerberus@lodev.xyz"
   },
   "defaultCommandTimeout": 10000,
   "requestTimeout": 60000,

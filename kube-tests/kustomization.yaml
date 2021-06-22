@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cronjob.yml
+
+secretGenerator:
+  - envs:
+      - cronjob-secret.env
+    name: cronjob-secret
+    type: Opaque
+
+configMapGenerator:
+  - name: cronjob-config
+    envs:
+      - cronjob-config.env
+
+images:
+  - name: quay.io/ukhomeofficedigital/cerberus-ui-service
+    newTag: $(CERBERUS_SERVICE_TEST_TAG)
+
+vars:
+  - name: CERBERUS_SERVICE_TEST_TAG
+    objref:
+      kind: ConfigMap
+      name: cronjob-config
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.CERBERUS_SERVICE_TEST_TAG
+
+configurations:
+  - kustomizeconfig.yaml

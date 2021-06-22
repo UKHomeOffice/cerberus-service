@@ -8,434 +8,414 @@ platform:
   arch: amd64
 
 steps:
-- name: synch_dev_secrets
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-secrets
-  environment:
-    AWS_ACCESS_KEY_ID:
-      from_secret: DEV_DRONE_AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: DEV_DRONE_AWS_SECRET_ACCESS_KEY
-    DEPLOY_ENV: dev
-    DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
-    DRONE_TOKEN:
-      from_secret: DRONE_V1_PUBLIC_TOKEN
-    DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
-  when:
-    event:
-    - promote
-    target:
-    - secrets
+  # TODO: what is the sync secrets thing actually doing?
 
-- name: synch_sit_secrets
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-secrets
-  environment:
-    AWS_ACCESS_KEY_ID:
-      from_secret: SIT_DRONE_AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: SIT_DRONE_AWS_SECRET_ACCESS_KEY
-    DEPLOY_ENV: sit
-    DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
-    DRONE_TOKEN:
-      from_secret: DRONE_V1_PUBLIC_TOKEN
-    DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
-  when:
-    event:
-    - promote
-    target:
-    - secrets
+  - name: synch_dev_secrets
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/cop-secrets
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: DEV_DRONE_AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: DEV_DRONE_AWS_SECRET_ACCESS_KEY
+      DEPLOY_ENV: dev
+      DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
+      DRONE_TOKEN:
+        from_secret: DRONE_V1_PUBLIC_TOKEN
+      DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
+    when:
+      event:
+        - promote
+      target:
+        - secrets
 
-- name: synch_staging_secrets
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-secrets
-  environment:
-    AWS_ACCESS_KEY_ID:
-      from_secret: STAGING_DRONE_AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: STAGING_DRONE_AWS_SECRET_ACCESS_KEY
-    DEPLOY_ENV: staging
-    DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
-    DRONE_TOKEN:
-      from_secret: DRONE_V1_PUBLIC_TOKEN
-    DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
-  when:
-    event:
-    - promote
-    target:
-    - secrets
+  - name: synch_sit_secrets
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/cop-secrets
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: SIT_DRONE_AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: SIT_DRONE_AWS_SECRET_ACCESS_KEY
+      DEPLOY_ENV: sit
+      DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
+      DRONE_TOKEN:
+        from_secret: DRONE_V1_PUBLIC_TOKEN
+      DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
+    when:
+      event:
+        - promote
+      target:
+        - secrets
 
-- name: synch_production_secrets
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-secrets
-  environment:
-    AWS_ACCESS_KEY_ID:
-      from_secret: PRODUCTION_DRONE_AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: PRODUCTION_DRONE_AWS_SECRET_ACCESS_KEY
-    DEPLOY_ENV: production
-    DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
-    DRONE_TOKEN:
-      from_secret: DRONE_V1_PUBLIC_TOKEN
-    DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
-  when:
-    event:
-    - promote
-    target:
-    - secrets
+  - name: synch_staging_secrets
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/cop-secrets
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: STAGING_DRONE_AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: STAGING_DRONE_AWS_SECRET_ACCESS_KEY
+      DEPLOY_ENV: staging
+      DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
+      DRONE_TOKEN:
+        from_secret: DRONE_V1_PUBLIC_TOKEN
+      DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
+    when:
+      event:
+        - promote
+      target:
+        - secrets
 
-- name: unit_tests
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-node:12-alpine
-  commands:
-  - node -v
-  - npm -v
-  - npm ci
-  - npm run test
-  when:
-    event:
-    - push
+  - name: synch_production_secrets
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/cop-secrets
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: PRODUCTION_DRONE_AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: PRODUCTION_DRONE_AWS_SECRET_ACCESS_KEY
+      DEPLOY_ENV: production
+      DRONE_SERVER: https://drone-gh.acp.homeoffice.gov.uk
+      DRONE_TOKEN:
+        from_secret: DRONE_V1_PUBLIC_TOKEN
+      DRONE_VERSION: ${DRONE_SYSTEM_VERSION}
+    when:
+      event:
+        - promote
+      target:
+        - secrets
 
-- name: linting
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-node:12-alpine
-  commands:
-  - npm run lint -- .
-  when:
-    event:
-    - push
+  - name: unit_tests
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/cop-node:12-alpine
+    commands:
+      - node -v
+      - npm -v
+      - npm ci
+      - npm run test
+    when:
+      event:
+        - push
 
-- name: build
-  pull: always
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-  commands:
-  - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
-  - docker build -t cerberus-ui-service:$${DRONE_COMMIT_SHA} .
-  when:
-    event:
-    - push
+  - name: linting
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/cop-node:12-alpine
+    commands:
+      - npm run lint -- .
+    when:
+      event:
+        - push
 
-- name: vulnerability-scan
-  pull: always
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
-  environment:
-    DOCKERFILE: Dockerfile
-    IMAGE_NAME: cerberus-ui-service:${DRONE_COMMIT_SHA}
-    LOCAL_IMAGE: true
-    TOLERATE: low
-    WHITELIST_FILE: whitelist
-  when:
-    event:
-    - push
+  - name: build # seems redundant since the image_to_quay does the same thing?
+    pull: always
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+    commands:
+      - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
+      - docker build -t cerberus-ui-service:$${DRONE_COMMIT_SHA} .
+    when:
+      event:
+        - push
 
-- name: image_to_quay
-  image: plugins/docker
-  settings:
-    registry: quay.io
-    repo: quay.io/ukhomeofficedigital/cerberus-ui-service
-    tags: ${DRONE_COMMIT_SHA}
-  environment:
-    DOCKER_PASSWORD:
-      from_secret: QUAY_PASSWORD
-    DOCKER_USERNAME:
-      from_secret: QUAY_USERNAME
-  when:
-    branch:
-    - main
-    event:
-    - push
+  - name: vulnerability-scan
+    pull: always
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
+    environment:
+      DOCKERFILE: Dockerfile
+      IMAGE_NAME: cerberus-ui-service:${DRONE_COMMIT_SHA}
+      LOCAL_IMAGE: true
+      TOLERATE: low
+      WHITELIST_FILE: whitelist
+    when:
+      event:
+        - push
 
-- name: test_image_to_quay
-  image: plugins/docker
-  settings:
-    registry: quay.io
-    repo: quay.io/ukhomeofficedigital/cerberus-ui-service
-    dockerfile: cron-Dockerfile
-    tags:
-      - cron-${DRONE_COMMIT_SHA}
-  environment:
-    DOCKER_PASSWORD:
-      from_secret: QUAY_PASSWORD
-    DOCKER_USERNAME:
-      from_secret: QUAY_USERNAME
-  when:
-    branch:
-       - main
-    event:
-       - push
+  - name: image_to_quay
+    image: plugins/docker
+    settings:
+      registry: quay.io
+      repo: quay.io/ukhomeofficedigital/cerberus-ui-service
+      tags: ${DRONE_COMMIT_SHA}
+    environment:
+      DOCKER_PASSWORD:
+        from_secret: QUAY_PASSWORD
+      DOCKER_USERNAME:
+        from_secret: QUAY_USERNAME
+    when:
+      branch:
+        - main
+      event:
+        - push
 
-- name: deploy_to_dev
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/kd
-  commands:
-  - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
-  - kd --insecure-skip-tls-verify -f kube/cert.yml
-  - kd --insecure-skip-tls-verify -f kube/network-policy.yml
-  - kd --insecure-skip-tls-verify -f kube/service.yml
-  - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
-  - kd --insecure-skip-tls-verify -f kube/ingress.yml
-  environment:
-    DEPLOY_ENV: dev
-    KEYCLOAK_AUTH_URL:
-      from_secret: DEV_KEYCLOAK_URL
-    KEYCLOAK_CLIENT_ID:
-      from_secret: DEV_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
-    KEYCLOAK_REALM:
-      from_secret: DEV_KEYCLOAK_REALM
-    CERBERUS_UI_IMAGE: quay.io/ukhomeofficedigital/cerberus-ui-service
-    CERBERUS_UI_NAME: cerberus-ui-service
-    CERBERUS_UI_PORT: 8080
-    CERBERUS_UI_URL:
-      from_secret: DEV_CERBERUS_UI_SERVICE_URL
-    KUBE_NAMESPACE:
-      from_secret: DEV_KUBE_NAMESPACE_COP_CERBERUS
-    KUBE_SERVER:
-      from_secret: DEV_KUBE_SERVER
-    KUBE_TOKEN:
-      from_secret: DEV_CERBERUS_KUBE_TOKEN
-    NGINX_IMAGE:
-      from_secret: NGINX_IMAGE
-    NGINX_TAG:
-      from_secret: NGINX_TAG
-    FORM_API_URL:
-      from_secret: DEV_API_FORM_URL
-    REFDATA_API_URL:
-      from_secret: DEV_REFDATA_API_URL
-    CERBERUS_WORKFLOW_SERVICE_URL:
-      from_secret: DEV_CERBERUS_SERVICE_URL
-  when:
-    branch:
-    - main
-    event:
-    - push
+  - name: test_image_to_quay
+    image: plugins/docker
+    settings:
+      registry: quay.io
+      repo: quay.io/ukhomeofficedigital/cerberus-ui-service # TODO: misleading might be better on a different repo
+      dockerfile: cron-Dockerfile
+      tags:
+        - cron-${DRONE_COMMIT_SHA}
+    environment:
+      DOCKER_PASSWORD:
+        from_secret: QUAY_PASSWORD
+      DOCKER_USERNAME:
+        from_secret: QUAY_USERNAME
+    when:
+      branch:
+        - main
+      event:
+        - push
 
-- name: create_testjob_dev
-  pull: always
-  image: quay.io/ukhomeofficedigital/kd
-  commands:
-    - export CYPRESS_CACHE_FOLDER="~/.cache/Cypress"
-    - export AUTH_URL="$${PROTOCOL_HTTPS}$${DEV_KEYCLOAK_URL}"
-    - export NAME="cerberus-functional-tests"
-    - kd --insecure-skip-tls-verify -f kube/secret.yml
-    - kd --insecure-skip-tls-verify -f kube/job.yml
-  environment:
-    AUTH_REALM:
-      from_secret: DEV_KEYCLOAK_REALM
-    AUTH_CLIENT_ID:
-      from_secret: DEV_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
-    AUTH_BASE_URL:
-      from_secret: DEV_KEYCLOAK_URL
-    CERBERUS_WORKFLOW_SERVICE_URL:
-      from_secret: DEV_CERBERUS_SERVICE_URL
-    CERBERUS_SERVICE_URL:
-      from_secret: DEV_CERBERUS_UI_SERVICE_URL
-    AWS_ACCESS_KEY_ID:
-      from_secret: DEV_FORMIO_INT_TEST_SECRET_AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: DEV_FORMIO_INT_TEST_SECRET_AWS_SECRET_ACCESS_KEY
-    PROTOCOL_HTTPS:
-      from_secret: PROTOCOL_HTTPS
-    REPORT_BASE_URL:
-      from_secret: TESTS_REPORT_BASE_URL
-    S3_ACCESS_KEY:
-      from_secret: TESTS_S3_ACCESS_KEY
-    S3_BUCKET_NAME:
-      from_secret: TESTS_S3_BUCKET_NAME
-    S3_SECRET_KEY:
-      from_secret: TESTS_S3_SECRET_KEY
-    SLACK_WEB_HOOK:
-      from_secret: TESTS_SLACK_WEBHOOK
-    TEST_SECRET_NAME:
-      from_secret: DEV_FORMIO_INT_TEST_SECRET_NAME
-    CYPRESS_KEY:
-      from_secret: CYPRESS_KEY
-    CYPRESS_PROJECT_ID:
-      from_secret: CYPRESS_PROJECT_ID
-    KUBE_NAMESPACE:
-      from_secret: DEV_KUBE_NAMESPACE_COP_CERBERUS
-    KUBE_SERVER:
-      from_secret: DEV_KUBE_SERVER
-    KUBE_TOKEN:
-      from_secret: DEV_CERBERUS_KUBE_TOKEN
-    CERBERUS_UI_NAME: cerberus-ui-service
-    CERBERUS_SERVICE_TEST_TAG: cron-${DRONE_COMMIT_SHA}
-    CRON_SCHEDULE: "\"10 8-17/1 * * 1-5\""
-    JOB_NAME: "\"cerberus-functional-tests\""
-  when:
-    branch:
-       - main
-    event:
-       - push
+  - name: deploy_to_dev
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/kd
+    commands:
+      - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
+      - kd --insecure-skip-tls-verify -f kube/cert.yml
+      - kd --insecure-skip-tls-verify -f kube/network-policy.yml
+      - kd --insecure-skip-tls-verify -f kube/service.yml
+      - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
+      - kd --insecure-skip-tls-verify -f kube/ingress.yml
+    environment:
+      DEPLOY_ENV: dev
+      KEYCLOAK_AUTH_URL:
+        from_secret: DEV_KEYCLOAK_URL
+      KEYCLOAK_CLIENT_ID:
+        from_secret: DEV_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
+      KEYCLOAK_REALM:
+        from_secret: DEV_KEYCLOAK_REALM
+      CERBERUS_UI_URL:
+        from_secret: DEV_CERBERUS_UI_SERVICE_URL
+      KUBE_NAMESPACE:
+        from_secret: DEV_KUBE_NAMESPACE_COP_CERBERUS
+      KUBE_SERVER:
+        from_secret: DEV_KUBE_SERVER
+      KUBE_TOKEN:
+        from_secret: DEV_CERBERUS_KUBE_TOKEN
+      NGINX_IMAGE:
+        from_secret: NGINX_IMAGE
+      NGINX_TAG:
+        from_secret: NGINX_TAG
+      FORM_API_URL:
+        from_secret: DEV_API_FORM_URL
+      REFDATA_API_URL:
+        from_secret: DEV_REFDATA_API_URL
+      CERBERUS_WORKFLOW_SERVICE_URL:
+        from_secret: DEV_CERBERUS_SERVICE_URL
+    when:
+      branch:
+        - main
+      event:
+        - push
 
+  - name: create_testjob_dev
+    pull: always
+    image: bitnami/kubectl:1.20.8
+    commands:
+      - export AUTH_URL="https://$${DEV_KEYCLOAK_URL}"
+      - kubectl apply --insecure-skip-tls-verify -k kube-tests
+    environment:
+      AUTH_REALM:
+        from_secret: DEV_KEYCLOAK_REALM
+      AUTH_CLIENT_ID:
+        from_secret: DEV_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
+      AUTH_BASE_URL:
+        from_secret: DEV_KEYCLOAK_URL
+      CERBERUS_WORKFLOW_SERVICE_URL:
+        from_secret: DEV_CERBERUS_SERVICE_URL
+      CERBERUS_SERVICE_URL:
+        from_secret: DEV_CERBERUS_UI_SERVICE_URL
+      AWS_ACCESS_KEY_ID:
+        from_secret: DEV_FORMIO_INT_TEST_SECRET_AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: DEV_FORMIO_INT_TEST_SECRET_AWS_SECRET_ACCESS_KEY
+      REPORT_BASE_URL:
+        from_secret: TESTS_REPORT_BASE_URL
+      S3_ACCESS_KEY:
+        from_secret: TESTS_S3_ACCESS_KEY
+      S3_BUCKET_NAME:
+        from_secret: TESTS_S3_BUCKET_NAME
+      S3_SECRET_KEY:
+        from_secret: TESTS_S3_SECRET_KEY
+      SLACK_WEB_HOOK:
+        from_secret: TESTS_SLACK_WEBHOOK
+      TEST_SECRET_NAME:
+        from_secret: DEV_FORMIO_INT_TEST_SECRET_NAME
+      CYPRESS_KEY:
+        from_secret: CYPRESS_KEY
+      CYPRESS_PROJECT_ID:
+        from_secret: CYPRESS_PROJECT_ID
+      KUBE_NAMESPACE:
+        from_secret: DEV_KUBE_NAMESPACE_COP_CERBERUS
+      KUBE_SERVER:
+        from_secret: DEV_KUBE_SERVER
+      KUBE_TOKEN:
+        from_secret: DEV_CERBERUS_KUBE_TOKEN
+      CERBERUS_SERVICE_TEST_TAG: cron-${DRONE_COMMIT_SHA}
+      JOB_NAME: '"cerberus-functional-tests"'
+    when:
+      branch:
+        - main
+      event:
+        - push
 
-- name: deploy_to_sit
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/kd
-  commands:
-  - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
-  - kd --insecure-skip-tls-verify -f kube/cert.yml
-  - kd --insecure-skip-tls-verify -f kube/network-policy.yml
-  - kd --insecure-skip-tls-verify -f kube/service.yml
-  - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
-  - kd --insecure-skip-tls-verify -f kube/ingress.yml
-  environment:
-    DEPLOY_ENV: sit
-    KEYCLOAK_AUTH_URL:
-      from_secret: SIT_KEYCLOAK_URL
-    KEYCLOAK_CLIENT_ID:
-      from_secret: SIT_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
-    KEYCLOAK_REALM:
-      from_secret: SIT_KEYCLOAK_REALM
-    CERBERUS_UI_IMAGE: quay.io/ukhomeofficedigital/cerberus-ui-service
-    CERBERUS_UI_NAME: cerberus-ui-service
-    CERBERUS_UI_PORT: 8080
-    CERBERUS_UI_URL:
-      from_secret: SIT_CERBERUS_UI_SERVICE_URL
-    KUBE_NAMESPACE:
-      from_secret: SIT_KUBE_NAMESPACE_COP_CERBERUS
-    KUBE_SERVER:
-      from_secret: SIT_KUBE_SERVER
-    KUBE_TOKEN:
-      from_secret: SIT_CERBERUS_KUBE_TOKEN
-    NGINX_IMAGE:
-      from_secret: NGINX_IMAGE
-    NGINX_TAG:
-      from_secret: NGINX_TAG
-    FORM_API_URL:
-      from_secret: SIT_API_FORM_URL
-    REFDATA_API_URL:
-      from_secret: SIT_REFDATA_API_URL
-    CERBERUS_WORKFLOW_SERVICE_URL:
-      from_secret: SIT_CERBERUS_SERVICE_URL
-  when:
-    branch:
-    - main
-    event:
-    - promote
-    target:
-    - sit
+  - name: deploy_to_sit
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/kd
+    commands:
+      - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
+      - kd --insecure-skip-tls-verify -f kube/cert.yml
+      - kd --insecure-skip-tls-verify -f kube/network-policy.yml
+      - kd --insecure-skip-tls-verify -f kube/service.yml
+      - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
+      - kd --insecure-skip-tls-verify -f kube/ingress.yml
+    environment:
+      DEPLOY_ENV: sit
+      KEYCLOAK_AUTH_URL:
+        from_secret: SIT_KEYCLOAK_URL
+      KEYCLOAK_CLIENT_ID:
+        from_secret: SIT_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
+      KEYCLOAK_REALM:
+        from_secret: SIT_KEYCLOAK_REALM
+      CERBERUS_UI_URL:
+        from_secret: SIT_CERBERUS_UI_SERVICE_URL
+      KUBE_NAMESPACE:
+        from_secret: SIT_KUBE_NAMESPACE_COP_CERBERUS
+      KUBE_SERVER:
+        from_secret: SIT_KUBE_SERVER
+      KUBE_TOKEN:
+        from_secret: SIT_CERBERUS_KUBE_TOKEN
+      NGINX_IMAGE:
+        from_secret: NGINX_IMAGE
+      NGINX_TAG:
+        from_secret: NGINX_TAG
+      FORM_API_URL:
+        from_secret: SIT_API_FORM_URL
+      REFDATA_API_URL:
+        from_secret: SIT_REFDATA_API_URL
+      CERBERUS_WORKFLOW_SERVICE_URL:
+        from_secret: SIT_CERBERUS_SERVICE_URL
+    when:
+      branch:
+        - main
+      event:
+        - promote
+      target:
+        - sit
 
-- name: deploy_to_staging
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/kd
-  commands:
-  - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
-  - kd --insecure-skip-tls-verify -f kube/cert.yml
-  - kd --insecure-skip-tls-verify -f kube/network-policy.yml
-  - kd --insecure-skip-tls-verify -f kube/service.yml
-  - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
-  - kd --insecure-skip-tls-verify -f kube/ingress.yml
-  environment:
-    DEPLOY_ENV: staging
-    KEYCLOAK_AUTH_URL:
-      from_secret: STAGING_KEYCLOAK_URL
-    KEYCLOAK_CLIENT_ID:
-      from_secret: STAGING_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
-    KEYCLOAK_REALM:
-      from_secret: STAGING_KEYCLOAK_REALM
-    CERBERUS_UI_IMAGE: quay.io/ukhomeofficedigital/cerberus-ui-service
-    CERBERUS_UI_NAME: cerberus-ui-service
-    CERBERUS_UI_PORT: 8080
-    CERBERUS_UI_URL:
-      from_secret: STAGING_CERBERUS_UI_SERVICE_URL
-    KUBE_NAMESPACE:
-      from_secret: STAGING_KUBE_NAMESPACE_COP_CERBERUS
-    KUBE_SERVER:
-      from_secret: STAGING_KUBE_SERVER
-    KUBE_TOKEN:
-      from_secret: STAGING_CERBERUS_KUBE_TOKEN
-    NGINX_IMAGE:
-      from_secret: NGINX_IMAGE
-    NGINX_TAG:
-      from_secret: NGINX_TAG
-    FORM_API_URL:
-      from_secret: STAGING_API_FORM_URL
-    REFDATA_API_URL:
-      from_secret: STAGING_REFDATA_API_URL
-    CERBERUS_WORKFLOW_SERVICE_URL:
-      from_secret: STAGING_CERBERUS_SERVICE_URL
-  when:
-    branch:
-    - main
-    event:
-    - promote
-    target:
-    - staging
+  - name: deploy_to_staging
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/kd
+    commands:
+      - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
+      - kd --insecure-skip-tls-verify -f kube/cert.yml
+      - kd --insecure-skip-tls-verify -f kube/network-policy.yml
+      - kd --insecure-skip-tls-verify -f kube/service.yml
+      - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
+      - kd --insecure-skip-tls-verify -f kube/ingress.yml
+    environment:
+      DEPLOY_ENV: staging
+      KEYCLOAK_AUTH_URL:
+        from_secret: STAGING_KEYCLOAK_URL
+      KEYCLOAK_CLIENT_ID:
+        from_secret: STAGING_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
+      KEYCLOAK_REALM:
+        from_secret: STAGING_KEYCLOAK_REALM
+      CERBERUS_UI_URL:
+        from_secret: STAGING_CERBERUS_UI_SERVICE_URL
+      KUBE_NAMESPACE:
+        from_secret: STAGING_KUBE_NAMESPACE_COP_CERBERUS
+      KUBE_SERVER:
+        from_secret: STAGING_KUBE_SERVER
+      KUBE_TOKEN:
+        from_secret: STAGING_CERBERUS_KUBE_TOKEN
+      NGINX_IMAGE:
+        from_secret: NGINX_IMAGE
+      NGINX_TAG:
+        from_secret: NGINX_TAG
+      FORM_API_URL:
+        from_secret: STAGING_API_FORM_URL
+      REFDATA_API_URL:
+        from_secret: STAGING_REFDATA_API_URL
+      CERBERUS_WORKFLOW_SERVICE_URL:
+        from_secret: STAGING_CERBERUS_SERVICE_URL
+    when:
+      branch:
+        - main
+      event:
+        - promote
+      target:
+        - staging
 
-- name: deploy_to_production
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/kd
-  commands:
-  - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
-  - kd --insecure-skip-tls-verify -f kube/cert.yml
-  - kd --insecure-skip-tls-verify -f kube/network-policy.yml
-  - kd --insecure-skip-tls-verify -f kube/service.yml
-  - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
-  - kd --insecure-skip-tls-verify -f kube/ingress.yml
-  environment:
-    DEPLOY_ENV: production
-    KEYCLOAK_AUTH_URL:
-      from_secret: PRODUCTION_KEYCLOAK_URL
-    KEYCLOAK_CLIENT_ID:
-      from_secret: PRODUCTION_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
-    KEYCLOAK_REALM:
-      from_secret: PRODUCTION_KEYCLOAK_REALM
-    CERBERUS_UI_IMAGE: quay.io/ukhomeofficedigital/cerberus-ui-service
-    CERBERUS_UI_NAME: cerberus-ui-service
-    CERBERUS_UI_PORT: 8080
-    CERBERUS_UI_URL:
-      from_secret: PRODUCTION_CERBERUS_UI_SERVICE_URL
-    KUBE_NAMESPACE:
-      from_secret: PRODUCTION_KUBE_NAMESPACE_COP_CERBERUS
-    KUBE_SERVER:
-      from_secret: PRODUCTION_KUBE_SERVER
-    KUBE_TOKEN:
-      from_secret: PRODUCTION_CERBERUS_KUBE_TOKEN
-    NGINX_IMAGE:
-      from_secret: NGINX_IMAGE
-    NGINX_TAG:
-      from_secret: NGINX_TAG
-    FORM_API_URL:
-      from_secret: PRODUCTION_API_FORM_URL
-    REFDATA_API_URL:
-      from_secret: PRODUCTION_REFDATA_API_URL
-    CERBERUS_WORKFLOW_SERVICE_URL:
-      from_secret: PRODUCTION_CERBERUS_SERVICE_URL
-  when:
-    branch:
-    - main
-    event:
-    - promote
-    target:
-    - production
+  - name: deploy_to_production
+    pull: if-not-exists
+    image: quay.io/ukhomeofficedigital/kd
+    commands:
+      - export CERBERUS_UI_TAG=$${DRONE_COMMIT_SHA}
+      - kd --insecure-skip-tls-verify -f kube/cert.yml
+      - kd --insecure-skip-tls-verify -f kube/network-policy.yml
+      - kd --insecure-skip-tls-verify -f kube/service.yml
+      - kd --insecure-skip-tls-verify -f kube/deployment.yml --timeout=5m
+      - kd --insecure-skip-tls-verify -f kube/ingress.yml
+    environment:
+      DEPLOY_ENV: production
+      KEYCLOAK_AUTH_URL:
+        from_secret: PRODUCTION_KEYCLOAK_URL
+      KEYCLOAK_CLIENT_ID:
+        from_secret: PRODUCTION_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
+      KEYCLOAK_REALM:
+        from_secret: PRODUCTION_KEYCLOAK_REALM
+      CERBERUS_UI_URL:
+        from_secret: PRODUCTION_CERBERUS_UI_SERVICE_URL
+      KUBE_NAMESPACE:
+        from_secret: PRODUCTION_KUBE_NAMESPACE_COP_CERBERUS
+      KUBE_SERVER:
+        from_secret: PRODUCTION_KUBE_SERVER
+      KUBE_TOKEN:
+        from_secret: PRODUCTION_CERBERUS_KUBE_TOKEN
+      NGINX_IMAGE:
+        from_secret: NGINX_IMAGE
+      NGINX_TAG:
+        from_secret: NGINX_TAG
+      FORM_API_URL:
+        from_secret: PRODUCTION_API_FORM_URL
+      REFDATA_API_URL:
+        from_secret: PRODUCTION_REFDATA_API_URL
+      CERBERUS_WORKFLOW_SERVICE_URL:
+        from_secret: PRODUCTION_CERBERUS_SERVICE_URL
+    when:
+      branch:
+        - main
+      event:
+        - promote
+      target:
+        - production
 
-- name: notify
-  pull: if-not-exists
-  image: plugins/slack
-  settings:
-    channel: cop-deployments
-    template: "{{#build.deployTo}}\n  *{{repo.name}} - Build {{build.number}} - {{uppercasefirst build.deployTo}} - {{uppercase build.status}}*\n  {{build.link}}\n{{else}}\n  *{{repo.name}} - Build {{build.number}} - Development - {{uppercase build.status}}*\n  {{build.link}}\n{{/build.deployTo}}\n"
-    username: Drone Build Watcher
-  environment:
-    SLACK_WEBHOOK:
-      from_secret: SLACK_WEBHOOK
-  when:
-    branch:
-    - main
-    event:
-    - promote
-    status:
-    - success
-    - failure
+  - name: notify
+    pull: if-not-exists
+    image: plugins/slack
+    settings:
+      channel: cop-deployments
+      template: "{{#build.deployTo}}\n  *{{repo.name}} - Build {{build.number}} - {{uppercasefirst build.deployTo}} - {{uppercase build.status}}*\n  {{build.link}}\n{{else}}\n  *{{repo.name}} - Build {{build.number}} - Development - {{uppercase build.status}}*\n  {{build.link}}\n{{/build.deployTo}}\n"
+      username: Drone Build Watcher
+    environment:
+      SLACK_WEBHOOK:
+        from_secret: SLACK_WEBHOOK
+    when:
+      branch:
+        - main
+      event:
+        - promote
+      status:
+        - success
+        - failure
 
 services:
-- name: docker
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+  - name: docker
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
 
-- name: anchore-submission-server
-  pull: always
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
-  commands:
-  - /run.sh server
-
-...
+  - name: anchore-submission-server
+    pull: always
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
+    commands:
+      - /run.sh server

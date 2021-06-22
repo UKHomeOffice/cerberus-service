@@ -1,13 +1,13 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-  name: {{.CERBERUS_UI_NAME}}-pod-cmio
+  name: cerberus-ui-service-pod-cmio
 spec:
-  secretName: {{.CERBERUS_UI_NAME}}-pod-cmio
+  secretName: cerberus-ui-service-pod-cmio
   issuerRef:
     name: platform-ca
     kind: ClusterIssuer
-  commonName: {{.CERBERUS_UI_NAME}}.{{.KUBE_NAMESPACE}}.svc.cluster.local
+  commonName: cerberus-ui-service.{{.KUBE_NAMESPACE}}.svc.cluster.local
   dnsNames:
-  - localhost
-  - 127.0.0.1
+    - localhost
+    - 127.0.0.1

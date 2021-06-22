@@ -2,25 +2,31 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: {{.CERBERUS_UI_NAME}}
+  name: cerberus-ui-service
   labels:
     cert-manager.io/solver: http01
   annotations:
-    cert-manager.io/enabled: "true"
-    kubernetes.io/ingress.class: "nginx-external"
-    ingress.kubernetes.io/backend-protocol: "HTTPS"
-    ingress.kubernetes.io/force-ssl-redirect: "true"
-    ingress.kubernetes.io/proxy-read-timeout: "3600"
-    ingress.kubernetes.io/proxy-send-timeout: "3600"
+    cert-manager.io/enabled: 'true'
+    kubernetes.io/ingress.class: 'nginx-external'
+    ingress.kubernetes.io/backend-protocol: 'HTTPS'
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
+    ingress.kubernetes.io/proxy-read-timeout: '3600'
+    ingress.kubernetes.io/proxy-send-timeout: '3600'
 spec:
   rules:
-  - host: {{.CERBERUS_UI_URL}}
-    http:
-      paths:
-      - backend:
-          serviceName: {{.CERBERUS_UI_NAME}}
-          servicePort: 10443
+    - host: $(CERBERUS_UI_URL)
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: cerberus-ui-service
+              servicePort: https
+          - path: /camunda
+            backend:
+              serviceName: workflow-service
+              servicePort: https
+
   tls:
-  - hosts:
-    - {{.CERBERUS_UI_URL}}
-    secretName: {{.CERBERUS_UI_URL}}-cmio
+    - hosts:
+        - $(CERBERUS_UI_URL)
+      secretName: cerberus-ui-service-cmio

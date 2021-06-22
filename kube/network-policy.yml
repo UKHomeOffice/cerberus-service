@@ -2,16 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{.CERBERUS_UI_NAME}}
+  name: cerberus-ui-service
 spec:
   podSelector:
     matchLabels:
-      name: {{.CERBERUS_UI_NAME}}
+      name: cerberus-ui-service
   ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: ingress-external
-    ports:
-      - port: 10443
-        protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-external
+      ports:
+        - port: 10443
+          protocol: TCP

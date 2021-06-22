@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - kube/cert.yml
+  - kube/deployment.yml
+  - kube/ingress.yml
+  - kube/service.yml
+  - kube/network-policy.yml
+
+secretGenerator:
+  - name: secret
+    env: kube/secret.env
+    type: Opaque
+
+configMapGenerator:
+  - name: config
+    env: kube/config.env
+
+vars:
+  - name: CERBERUS_UI_URL
+    objref:
+      kind: ConfigMap
+      name: config
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.CERBERUS_UI_URL

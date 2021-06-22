@@ -1,0 +1,36 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cerberus-functional-tests
+spec:
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  schedule: '10 8-17/1 * * 1-5'
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+            - name: cerberus-functional-tests
+              image: quay.io/ukhomeofficedigital/cerberus-ui-service
+              envFrom:
+                - secretRef:
+                    name: cronjob-secret
+                - configMapRef:
+                    name: cronjob-config
+              env:
+                - name: JOB_NAME
+                  value: cerberus-functional-tests
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+              resources:
+                requests:
+                  memory: '2048Mi'
+                  cpu: '1000m'
+                limits:
+                  memory: '4096Mi'
+                  cpu: '2000m'
+          restartPolicy: Never

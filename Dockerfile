@@ -1,45 +1,32 @@
+FROM nginx as selfsignedcerts
+WORKDIR /certs
+RUN openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /certs/tls.key -out /certs/tls.crt -subj "/C=UK/ST=example/L=example/O=example/CN=www.example.com"
+
 FROM node:10-alpine as builder
 
 RUN apk update && apk upgrade
-RUN mkdir -p /src
 
 WORKDIR /src
 
 COPY package*.json ./
 RUN npm install
-COPY . /src
-
-# This allows to pass env vars on runtime
-# Remember to also update run.sh, webpack.config.js and config.js
-ENV KEYCLOAK_AUTH_URL=REPLACE_KEYCLOAK_AUTH_URL \
-    KEYCLOAK_CLIENT_ID=REPLACE_KEYCLOAK_CLIENT_ID \
-    KEYCLOAK_REALM=REPLACE_KEYCLOAK_REALM \
-    FORM_API_URL=REPLACE_FORM_API_URL \
-    REFDATA_API_URL=REPLACE_REFDATA_API_URL
+COPY . /src/
 
 RUN npm run build
 
-# Now build teh final image based on nginx
-FROM alpine:3.7
+FROM nginx:1.21-alpine
 
-ENV NGINX_CONFIG_FILE=/etc/nginx/nginx.conf
+COPY --from=builder --chown=101 /src/dist/ /usr/share/nginx/html
+COPY --from=selfsignedcerts --chown=101 /certs /certs/
 
-RUN apk upgrade --no-cache && \
-    apk add --no-cache nginx bash nginx-mod-http-lua && \
-    install -d -g nginx -o nginx /run/nginx && \
-    chown -R nginx:nginx /etc/nginx /var/log/nginx
-
-COPY --from=builder /src/dist/ /usr/share/nginx/html
 COPY /nginx/nginx.conf /etc/nginx/nginx.conf
-COPY --chown=100 /nginx/run.sh /run.sh
 
-RUN chmod 700 /run.sh
-RUN chown nginx /usr/share/nginx/html
+COPY --chown=101 --chmod=700 /nginx/run.sh /docker-entrypoint.d/01-hack-env-vars-to-js.sh
 
-# UID for ngnix user
-USER 100
+RUN chown nginx -R /etc/nginx
+
+USER 101
 
 EXPOSE 8080
-
-ENTRYPOINT ["/run.sh"]
+EXPOSE 10443
 

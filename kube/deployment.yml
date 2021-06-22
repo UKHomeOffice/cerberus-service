@@ -2,13 +2,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{.CERBERUS_UI_NAME}}
+  name: cerberus-ui-service
   labels:
-    service: {{.CERBERUS_UI_NAME}}
+    service: cerberus-ui-service
 spec:
   selector:
     matchLabels:
-      name: {{.CERBERUS_UI_NAME}}
+      name: cerberus-ui-service
   replicas: 3
   revisionHistoryLimit: 3
   minReadySeconds: 5
@@ -20,76 +20,46 @@ spec:
   template:
     metadata:
       labels:
-        name: {{.CERBERUS_UI_NAME}}
-        service: {{.CERBERUS_UI_NAME}}
+        name: cerberus-ui-service
+        service: cerberus-ui-service
     spec:
       restartPolicy: Always
       containers:
-      - name: {{.CERBERUS_UI_NAME}}-proxy
-        image: "{{.NGINX_IMAGE}}:{{.NGINX_TAG}}"
-        securityContext:
-          runAsNonRoot: true
-        env:
-          - name: PROXY_SERVICE_HOST
-            value: '127.0.0.1'
-          - name: PROXY_SERVICE_PORT
-            value: "{{.CERBERUS_UI_PORT}}"
-          - name: SERVER_CERT
-            value: "/certs/tls.crt"
-          - name: SERVER_KEY
-            value: "/certs/tls.key"
-          - name: LOG_FORMAT_NAME
-            value: 'json'
-          - name: NAXSI_USE_DEFAULT_RULES
-            value: 'FALSE'
-          - name: ENABLE_UUID_PARAM
-            value: 'FALSE'
-          - name: STATSD_METRICS
-            value: "FALSE"
-        ports:
-          - name: https
-            containerPort: 10443
-        volumeMounts:
-          - name: certs
-            mountPath: /certs
-      - name: {{.CERBERUS_UI_NAME}}
-        image: {{.CERBERUS_UI_IMAGE}}:{{.CERBERUS_UI_TAG}}
-        imagePullPolicy: Always
-        securityContext:
-          runAsUser: 100
-          runAsNonRoot: true
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "200m"
-          limits:
-            memory: "1024Mi"
-            cpu: "500m"
-        livenessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - wget -O - localhost:8080/camunda 2>&1| grep "HTTP/1.1 401"
-        ports:
-          - name: frontend
-            containerPort: {{.CERBERUS_UI_PORT}}
-        env:
-          - name: KEYCLOAK_AUTH_URL
-            value: "https://{{.KEYCLOAK_AUTH_URL}}"
-          - name: KEYCLOAK_CLIENT_ID
-            value: "{{.KEYCLOAK_CLIENT_ID}}"
-          - name: KEYCLOAK_REALM
-            value: "{{.KEYCLOAK_REALM}}"
-          - name: ENVIRONMENT
-            value: "{{.DEPLOY_ENV}}"
-          - name: FORM_API_URL
-            value: "https://{{.FORM_API_URL}}"
-          - name: REFDATA_API_URL
-            value: "https://{{.REFDATA_API_URL}}"
-          - name: CERBERUS_API_URL
-            value: "https://{{.CERBERUS_WORKFLOW_SERVICE_URL}}/camunda/engine-rest/"
+        - name: ui
+          image: quay.io/ukhomeofficedigital/cerberus-ui-service:{{.CERBERUS_UI_TAG}}
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 101
+            runAsNonRoot: true
+          resources:
+            requests:
+              memory: '64Mi'
+              cpu: '200m'
+            limits:
+              memory: '128Mi'
+              cpu: '500m'
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 10443
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          envFrom:
+            - configMapRef:
+                name: config
+            - secretRef:
+                name: secret
+          volumeMounts:
+            - name: certs
+              mountPath: /certs
       volumes:
-      - name: certs
-        secret:
-          secretName: "{{.CERBERUS_UI_NAME}}-pod-cmio"
+        - name: certs
+          secret:
+            secretName: 'cerberus-ui-service-pod-cmio'

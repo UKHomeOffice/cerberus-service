@@ -3,12 +3,12 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    name: {{.CERBERUS_UI_NAME}}
-  name: {{.CERBERUS_UI_NAME}}
+    name: cerberus-ui-service
+  name: cerberus-ui-service
 spec:
   ports:
-  - name: https
-    port: 443
-    targetPort: 10443
+    - name: https
+      port: 443
+      targetPort: https
   selector:
-    name: {{.CERBERUS_UI_NAME}}
+    name: cerberus-ui-service

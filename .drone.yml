@@ -84,49 +84,49 @@ steps:
     target:
     - secrets
 
-- name: unit_tests
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-node:12-alpine
-  commands:
-  - node -v
-  - npm -v
-  - npm ci
-  - npm run test
-  when:
-    event:
-    - push
-
-- name: linting
-  pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/cop-node:12-alpine
-  commands:
-  - npm run lint -- .
-  when:
-    event:
-    - push
-
-- name: build
-  pull: always
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-  commands:
-  - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
-  - docker build -t cerberus-ui-service:$${DRONE_COMMIT_SHA} .
-  when:
-    event:
-    - push
-
-- name: vulnerability-scan
-  pull: always
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
-  environment:
-    DOCKERFILE: Dockerfile
-    IMAGE_NAME: cerberus-ui-service:${DRONE_COMMIT_SHA}
-    LOCAL_IMAGE: true
-    TOLERATE: low
-    WHITELIST_FILE: whitelist
-  when:
-    event:
-    - push
+#- name: unit_tests
+#  pull: if-not-exists
+#  image: quay.io/ukhomeofficedigital/cop-node:12-alpine
+#  commands:
+#  - node -v
+#  - npm -v
+#  - npm ci
+#  - npm run test
+#  when:
+#    event:
+#    - push
+#
+#- name: linting
+#  pull: if-not-exists
+#  image: quay.io/ukhomeofficedigital/cop-node:12-alpine
+#  commands:
+#  - npm run lint -- .
+#  when:
+#    event:
+#    - push
+#
+#- name: build
+#  pull: always
+#  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+#  commands:
+#  - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
+#  - docker build -t cerberus-ui-service:$${DRONE_COMMIT_SHA} .
+#  when:
+#    event:
+#    - push
+#
+#- name: vulnerability-scan
+#  pull: always
+#  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
+#  environment:
+#    DOCKERFILE: Dockerfile
+#    IMAGE_NAME: cerberus-ui-service:${DRONE_COMMIT_SHA}
+#    LOCAL_IMAGE: true
+#    TOLERATE: low
+#    WHITELIST_FILE: whitelist
+#  when:
+#    event:
+#    - push
 
 - name: image_to_quay
   image: plugins/docker
@@ -334,6 +334,51 @@ steps:
       - promote
     target:
       - sit
+
+- name: run_test_staging
+  pull: always
+  image: quay.io/ukhomeofficedigital/cop-cypress:6.3.0-node13
+  commands:
+    - export CYPRESS_CACHE_FOLDER=/home/node/.cache/Cypress
+    - export CYPRESS_AUTH_REALM="$${AUTH_REALM}"
+    - export CYPRESS_AUTH_CLIENT_ID="$${AUTH_CLIENT_ID}"
+    - export CYPRESS_AUTH_BASE_URL="$${AUTH_BASE_URL}"
+    - export TEST_ENV="staging"
+    - export JOB_NAME="drone-build"
+    - npm ci
+    - scripts/run-tests.sh
+  environment:
+    AUTH_REALM:
+      from_secret: STAGING_KEYCLOAK_REALM
+    AUTH_CLIENT_ID:
+      from_secret: STAGING_CERBERUS_UI_SERVICE_KEYCLOAK_CLIENT_ID
+    AUTH_BASE_URL:
+      from_secret: STAGING_KEYCLOAK_URL
+    FORM_API_URL:
+      from_secret: STAGING_API_FORM_URL
+    CERBERUS_WORKFLOW_SERVICE_URL:
+      from_secret: STAGING_CERBERUS_SERVICE_URL
+    CERBERUS_SERVICE_URL:
+      from_secret: STAGING_CERBERUS_UI_SERVICE_URL
+    AWS_ACCESS_KEY_ID:
+      from_secret: STAGING_FORMIO_INT_TEST_SECRET_AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: STAGING_FORMIO_INT_TEST_SECRET_AWS_SECRET_ACCESS_KEY
+    REPORT_BASE_URL:
+      from_secret: TESTS_REPORT_BASE_URL
+    S3_ACCESS_KEY:
+      from_secret: TESTS_S3_ACCESS_KEY
+    S3_BUCKET_NAME:
+      from_secret: TESTS_S3_BUCKET_NAME
+    S3_SECRET_KEY:
+      from_secret: TESTS_S3_SECRET_KEY
+    TEST_ENV: staging
+  when:
+    branch:
+      exclude:
+        - main
+    event:
+      - push
 
 - name: create_testjob_staging
   pull: always

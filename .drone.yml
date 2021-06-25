@@ -346,6 +346,7 @@ steps:
     - export TEST_ENV="staging"
     - export JOB_NAME="drone-build"
     - npm ci
+    - node get_secrets.js staging
     - scripts/run-tests.sh
   environment:
     AUTH_REALM:
